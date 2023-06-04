@@ -1,4 +1,5 @@
 const { assertStateMemory } = require("lib");
+const roleUpgrader = require("role.upgrader");
 
 var roleCarrier = {
     run: function(creep) {
@@ -20,7 +21,7 @@ var roleCarrier = {
                     return (structure.structureType == STRUCTURE_CONTAINER) && (structure.store.getUsedCapacity() != 0);
                 }
             });
-            let container = containers[0];
+            containers.sort(function (a, b) {  return b.store.getUsedCapacity() - a.store.getUsedCapacity();  });
 
 
             if (creep.withdraw(tombstone, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -54,6 +55,8 @@ var roleCarrier = {
                 return;
             }
 
+            console.log(creep.transfer(extension, RESOURCE_ENERGY));
+
             if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 if (creep.transfer(spawn, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(spawn);
@@ -64,7 +67,8 @@ var roleCarrier = {
                     creep.moveTo(extension);
                 }
             } else {
-                creep.moveTo(6, 18);
+                console.log("a");
+                roleUpgrader.run(creep);
             }
         }
     }
