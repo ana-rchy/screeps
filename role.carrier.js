@@ -22,6 +22,7 @@ var roleCarrier = {
                 }
             });
             containers.sort(function (a, b) {  return b.store.getUsedCapacity() - a.store.getUsedCapacity();  });
+            container = containers[0];
 
 
             if (creep.withdraw(tombstone, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
@@ -51,23 +52,32 @@ var roleCarrier = {
             });
             if (extensions.length != 0) {
                 extension = extensions[0];
-            } else {
-                return;
             }
 
-            console.log(creep.transfer(extension, RESOURCE_ENERGY));
+            let container;
+            let containers = _.filter(Memory.containers, (container) => {
+                    return container.store.getFreeCapacity > 0;
+                }
+            );
+            if (containers.length != 0) {
+                container = containers[0];
+            }
 
             if (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
                 if (creep.transfer(spawn, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(spawn);
                 }
             } else
-            if (extension.store.getFreeCapacity(RESOURCE_ENERGY) > 0) {
+            if (typeof extension != "undefined") {
                 if (creep.transfer(extension, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(extension);
                 }
+            } else
+            if (typeof container != "undefined") {
+                if (creep.transfer(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(container);
+                }
             } else {
-                console.log("a");
                 roleUpgrader.run(creep);
             }
         }

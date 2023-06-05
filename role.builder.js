@@ -32,11 +32,22 @@ module.exports = {
 
 
             let constructionSite = creep.room.find(FIND_CONSTRUCTION_SITES)[0];
+            let needsRepair = creep.room.find(FIND_STRUCTURES, {filter: (structure) => {
+                    return structure.ticksToDecay <= 500;
+                }
+            });
+            let structureToRepair = needsRepair[0];
 
-            if (creep.build(constructionSite) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(constructionSite);
+            if (creep.room.find(FIND_CONSTRUCTION_SITES).length != 0) {
+                if (creep.build(constructionSite) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(constructionSite);
+                }
             } else {
-                creep.moveTo(6, 18);
+                if (creep.repair(structureToRepair) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(structureToRepair);
+                } else {
+                    creep.moveTo(6, 18);
+                }
             }
         }
     }
