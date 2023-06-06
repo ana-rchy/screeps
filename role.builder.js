@@ -1,52 +1,98 @@
+const lib = require("lib");
 const { assertStateMemory } = require("lib");
 
 module.exports = {
     run: function(creep) {
         assertStateMemory(creep, "collecting");
-
-        let room = creep.room;
-
-        if_collect: if (creep.memory.state == "collecting") {
-            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                creep.memory.state = "building";
-                break if_collect;
-            }
-
-
-            let containers = room.find(FIND_STRUCTURES, {filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_CONTAINER) && (structure.store.getUsedCapacity(RESOURCE_ENERGY) != 0);
+        const room = creep.room;
+        
+        switch (creep.memory.state) {
+            case "collecting":
+                if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                    creep.memory.state = "searching";
+                    break;
                 }
-            });
-            let container = containers[0];
 
-            if (creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(container);
-            }
-        }
+                ////////////////////////////////////////////////
 
-        if_build: if (creep.memory.state == "building") {
-            if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
-                creep.memory.state = "collecting";
-                break if_build;
-            }
+                var target;
+                let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {filter: (structure) => {
+                        return (structure.structureType == STRUCTURE_CONTAINER) && (structure.store.getUsedCapacity(RESOURCE_ENERGY) > 50);
+                    }
+                });
 
-
-            let constructionSite = creep.room.find(FIND_CONSTRUCTION_SITES)[0];
-            let needsRepair = creep.room.find(FIND_STRUCTURES, {filter: (structure) => {
-                    return structure.ticksToDecay <= 500;
+                if (typeof container != "undefined") {
+                    target = container;
+                } else {
+                    target = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES);
                 }
-            });
-            let structureToRepair = needsRepair[0];
 
-            if (creep.room.find(FIND_CONSTRUCTION_SITES).length != 0) {
+                ////////////////////////////////////////////////
+
+
+                if (creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE || creep.pickup(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(target);
+                }
+
+                break;
+
+            ////////////////////////////////////////////////////////////////////////////////////////////////
+            case "building":
+                let constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
+
+                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 || constructionSites.length == 0) {
+                    creep.memory.state = "searching";
+                    break;
+                }
+
+                ////////////////////////////////////////////////
+                
+                let constructionSite = lib.maxBy(constructionSites, (a) => {  return (a.progress / a.progressTotal);  });
+
                 if (creep.build(constructionSite) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(constructionSite);
                 }
-            } else {
-                if (creep.repair(structureToRepair) == ERR_NOT_IN_RANGE) {
-                    creep.moveTo(structureToRepair);
+
+                break;
+
+            case "repairing":
+                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    break;
+                }
+
+
+                if (creep.memory.repairTarget == "none") {
+                    let repairSites = creep.room.find(FIND_STRUCTURES, {filter: (structure) => {
+                            return (structure.hits / structure.hitsMax) <= 0.5;
+                        }
+                    });
+                    let repairSite = lib.minBy(repairSites, (a) => {  return a.hits;  });
+
+                    creep.memory.repairTarget = repairSite;
                 } else {
-                    creep.moveTo(6, 18);
+                    if (creep.repair(creep.memory.repairTarget) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(creep.memory.repairTarget);
+                    }
+
+                    if (creep.memory.repairTarget.hits == creep.memory.repairTarget.hitsMax) {
+                        creep.memory.repairTarget = "none";
+                    }
+                }
+
+                break;
+        }
+
+        if (creep.memory.state == "searching") {
+            if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                creep.memory.state = "collecting";
+            } else
+            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                let constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
+
+                if (constructionSites.length > 0) {
+                    creep.memory.state = "building";
+                } else {
+                    creep.memory.state = "repairing";
                 }
             }
         }

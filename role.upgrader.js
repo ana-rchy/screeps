@@ -1,40 +1,54 @@
+const lib = require("lib");
 const { assertStateMemory } = require("lib");
 
 module.exports = {
     run: function(creep) {
         assertStateMemory(creep, "collecting");
-          
         let room = creep.room;
 
-        if_collect: if (creep.memory.state == "collecting") {
-            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                creep.memory.state = "upgrading";
-                break if_collect;
-            }
-
-
-            let containers = room.find(FIND_STRUCTURES, {filter: (structure) => {
-                return (structure.structureType == STRUCTURE_CONTAINER) && (structure.store.getUsedCapacity(RESOURCE_ENERGY) != 0);
+        switch (creep.memory.state) {
+            case "collecting":
+                if (creep.store.getFreeCapacity() == 0) {
+                    creep.memory.state = "searching";
+                    break;
                 }
-            });
-            let container = containers[0];
 
-            if (creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(container);
-            }
+                ////////////////////////////////////////////////
+
+                let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {filter: (structure) => {
+                    return (structure.structureType == STRUCTURE_CONTAINER) && (structure.store.getUsedCapacity() > 0);
+                }});
+
+                ////////////////////////////////////////////////
+
+                if (creep.withdraw(container, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(container);
+                }
+
+                break;
+            
+            case "upgrading":
+                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                    creep.memory.state = "searching";
+                    break;
+                }
+
+                ////////////////////////////////////////////////
+
+                if (creep.upgradeController(room.controller) == ERR_NOT_IN_RANGE) {
+                    creep.moveTo(room.controller);
+                }
+
+                break;
         }
+
         
-        if_upgrade: if (creep.memory.state == "upgrading") {
+        if (creep.memory.state == "searching") {
             if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                 creep.memory.state = "collecting";
-                break if_upgrade;
-            }
-
-
-            if (creep.upgradeController(room.controller) == ERR_NOT_IN_RANGE) {
-                creep.moveTo(room.controller);
-            } else {
-                creep.moveTo(6, 18);
+            } else
+            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                creep.memory.state = "upgrading";
             }
         }
     }
