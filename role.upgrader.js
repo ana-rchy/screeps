@@ -1,8 +1,14 @@
 const lib = require("lib");
 const { assertStateMemory } = require("lib");
+const roleCarrier = require("role.carrier");
 
 module.exports = {
     run: function(creep) {
+        if (_.filter(Game.creeps, (creep) => creep.memory.role == 'carrier').length < 4) {
+            roleCarrier.run(creep);
+            return;
+        }
+
         assertStateMemory(creep, "collecting");
         let room = creep.room;
 

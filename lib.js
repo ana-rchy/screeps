@@ -3,7 +3,7 @@ module.exports = {
         let parts = [];
         let extensions = room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_EXTENSION}});
 
-        if (extensions.length == 5) {
+        if (extensions.length == 5 && Object.keys(Game.creeps).length > 2) {
             switch (role) {
                 case "harvester":
                     parts = [WORK, WORK, WORK, WORK, WORK, MOVE];

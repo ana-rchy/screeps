@@ -61,7 +61,7 @@ module.exports = {
                 }
 
 
-                if (creep.memory.repairTarget == "none") {
+                if (creep.memory.repairTarget == "none" || typeof creep.memory.repairTarget == undefined) {
                     let repairSites = creep.room.find(FIND_STRUCTURES, {filter: (structure) => {
                             return (structure.hits / structure.hitsMax) <= 0.5;
                         }
@@ -69,7 +69,8 @@ module.exports = {
                     let repairSite = lib.minBy(repairSites, (a) => {  return a.hits;  });
 
                     creep.memory.repairTarget = repairSite;
-                } else {
+                } else 
+                if (typeof creep.memory.repairTarget != "undefined") {
                     if (creep.repair(creep.memory.repairTarget) == ERR_NOT_IN_RANGE) {
                         creep.moveTo(creep.memory.repairTarget);
                     }

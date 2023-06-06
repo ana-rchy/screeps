@@ -10,7 +10,7 @@ module.exports.loop = function() {
         if (!Game.creeps[name]) {
             delete Memory.creeps[name];
             console.log('clearing inexistant creep: ', name);
-            lib.refreshMemory(creep);
+            lib.refreshMemory(Game.creeps[name]);
         }
     }
 
@@ -19,10 +19,10 @@ module.exports.loop = function() {
 
     if (typeof Memory.spawnOrder == "undefined") {
         Memory.spawnOrder = [
-            {name: "harvester", priority: 1, count: 0, parts: [WORK, WORK, MOVE, MOVE], limit: sourceCount},
-            {name: "carrier", priority: 2, count: 0, parts: [CARRY, CARRY, CARRY, MOVE, MOVE, MOVE], limit: sourceCount * 2},
-            {name: "builder", priority: 3, count: 0, parts: [WORK, CARRY, CARRY, MOVE, MOVE], limit: sourceCount * 4},
-            {name: "upgrader", priority: 4, count: 0, parts: [WORK, CARRY, CARRY, MOVE, MOVE], limit: sourceCount * 4}
+            {name: "harvester", priority: 1, count: 0, parts: [], limit: sourceCount},
+            {name: "carrier", priority: 2, count: 0, parts: [], limit: sourceCount * 2},
+            {name: "builder", priority: 3, count: 0, parts: [], limit: sourceCount * 3},
+            {name: "upgrader", priority: 4, count: 0, parts: [], limit: sourceCount * 4}
         ];
 
         lib.refreshMemory(creep);
