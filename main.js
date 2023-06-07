@@ -24,14 +24,13 @@ module.exports.loop = function() {
             {name: "builder", priority: 3, count: 0, parts: [], limit: sourceCount * 3},
             {name: "upgrader", priority: 4, count: 0, parts: [], limit: sourceCount * 4}
         ];
-
-        lib.refreshMemory(creep);
     }
 
     for (let i = 0; i < Memory.spawnOrder.length; i++) {
+        lib.refreshMemory(Memory.spawnOrder[i].name);
+        
         if (Memory.spawnOrder[i].count < Memory.spawnOrder[i].limit) {
             spawn.spawnCreep(Memory.spawnOrder[i].parts, Memory.spawnOrder[i].name + Game.time, {memory: {role: Memory.spawnOrder[i].name}});
-            lib.refreshMemory(spawn.room);
             break;
         }
     }

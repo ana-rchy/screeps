@@ -5,6 +5,7 @@ module.exports = {
     run: function(creep) {
         assertStateMemory(creep, "collecting");
         const room = creep.room;
+        let constructionSites;
         
         switch (creep.memory.state) {
             case "collecting":
@@ -17,7 +18,8 @@ module.exports = {
 
                 var target;
                 let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {filter: (structure) => {
-                        return (structure.structureType == STRUCTURE_CONTAINER) && (structure.store.getUsedCapacity(RESOURCE_ENERGY) > 50);
+                        return (structure.structureType == STRUCTURE_CONTAINER) && (!Object.keys(Memory.harvesterContainers).includes(structure.id)) &&
+                        (structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0);
                     }
                 });
 
@@ -38,7 +40,7 @@ module.exports = {
 
             ////////////////////////////////////////////////////////////////////////////////////////////////
             case "building":
-                let constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
+                constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
 
                 if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 || constructionSites.length == 0) {
                     creep.memory.state = "searching";
@@ -56,27 +58,33 @@ module.exports = {
                 break;
 
             case "repairing":
-                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+                constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
+
+                if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 || constructionSites.length > 0) {
+                    creep.memory.state = "searching";
                     break;
                 }
 
 
-                if (creep.memory.repairTarget == "none" || typeof creep.memory.repairTarget == undefined) {
+
+                if (creep.memory.repairTarget == undefined || creep.memory.repairTarget == null) {
                     let repairSites = creep.room.find(FIND_STRUCTURES, {filter: (structure) => {
                             return (structure.hits / structure.hitsMax) <= 0.5;
                         }
                     });
                     let repairSite = lib.minBy(repairSites, (a) => {  return a.hits;  });
 
-                    creep.memory.repairTarget = repairSite;
-                } else 
-                if (typeof creep.memory.repairTarget != "undefined") {
-                    if (creep.repair(creep.memory.repairTarget) == ERR_NOT_IN_RANGE) {
-                        creep.moveTo(creep.memory.repairTarget);
+                    if (repairSite != undefined && repairSite != null) {
+                        creep.memory.repairTarget = repairSite.id;
+                    }
+                } else {
+                    let repairTarget = Game.getObjectById(creep.memory.repairTarget);
+                    if (creep.repair(repairTarget) == ERR_NOT_IN_RANGE) {
+                        creep.moveTo(repairTarget);
                     }
 
-                    if (creep.memory.repairTarget.hits == creep.memory.repairTarget.hitsMax) {
-                        creep.memory.repairTarget = "none";
+                    if (repairTarget != null && repairTarget.hits == repairTarget.hitsMax) {
+                        creep.memory.repairTarget = null;
                     }
                 }
 

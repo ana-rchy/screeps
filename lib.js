@@ -1,9 +1,10 @@
 module.exports = {
-    determineParts: function(room, role) {
+    determineParts: function(role) {
+        let room = Game.spawns["Spawn1"].room;
         let parts = [];
         let extensions = room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_EXTENSION}});
 
-        if (extensions.length == 5 && Object.keys(Game.creeps).length > 2) {
+        if (extensions.length == 5 && Object.keys(Game.creeps).length > 2 && room.controller.level > 1) {
             switch (role) {
                 case "harvester":
                     parts = [WORK, WORK, WORK, WORK, WORK, MOVE];
@@ -67,5 +68,15 @@ module.exports = {
     
     maxBy: function(array, pluck) {
         return array.reduce((max, x) => max && pluck(max) >= pluck(x) ? max : x, null)
+    },
+
+    mean: function(array) {
+        let sum = 0;
+
+        for (let i in array) {
+            sum += i;
+        }
+
+        return sum / array.length;
     }
 }

@@ -4,7 +4,7 @@ const roleCarrier = require("role.carrier");
 
 module.exports = {
     run: function(creep) {
-        if (_.filter(Game.creeps, (creep) => creep.memory.role == 'carrier').length < 4) {
+        if (_.filter(Game.creeps, (creep) => creep.memory.role == 'carrier').length < 2) {
             roleCarrier.run(creep);
             return;
         }
@@ -22,7 +22,8 @@ module.exports = {
                 ////////////////////////////////////////////////
 
                 let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {filter: (structure) => {
-                    return (structure.structureType == STRUCTURE_CONTAINER) && (structure.store.getUsedCapacity() > 0);
+                    return (structure.structureType == STRUCTURE_CONTAINER) && (!Object.keys(Memory.harvesterContainers).includes(structure.id)) &&
+                    (structure.store.getUsedCapacity() > 0);
                 }});
 
                 ////////////////////////////////////////////////
