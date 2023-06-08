@@ -3,17 +3,9 @@ const lib = require("lib");
 
 module.exports = {
     run: function(creep) {
-        assertStateMemory(creep, "collecting");
         let room = creep.room;
-
-        if (typeof creep.memory.collectingTarget == "undefined") {
-            let viableTargets = room.find(FIND_STRUCTURES, {filter: (structure) => {
-                return (structure.structureType == STRUCTURE_CONTAINER) && (Object.keys(Memory.harvesterContainers).includes(structure.id)) &&
-                (Memory.harvesterContainers[structure.id] <= lib.mean(Object.values(Memory.harvesterContainers)));
-            }});
-            
-            creep.memory.collectingTarget = viableTargets[0].id;
-        }
+        assertStateMemory(creep, "collecting");
+        assertTarget(creep, room);
 
         switch (creep.memory.state) {
             case "collecting":
@@ -31,26 +23,25 @@ module.exports = {
 
                 let container = Game.getObjectById(creep.memory.collectingTarget);
 
-                if (container != null) {
                 if (droppeds.length > 0 && container.store.getUsedCapacity(RESOURCE_ENERGY) <= dropped.amount) {
                     energy = dropped;
                 } else {
                     energy = container;
                 }
-                }
 
 
-                if (room.find(FIND_TOMBSTONES).length > 0) {
-                    let tombstones = room.find(FIND_TOMBSTONES).sort(function(a, b) {  return b.store.getUsedCapacity(RESOURCE_ENERGY) - a.store.getUsedCapacity(RESOURCE_ENERGY);  });
-                    energy = tombstones[0];
+                let tombstones = room.find(FIND_TOMBSTONES, {filter: (tombstone) => {
+                    return tombstone.store.getUsedCapacity() > 0;
+                }});
+
+                if (tombstones.length > 0) {
+                    energy = lib.maxBy(tombstones, (a) => {  return a.store.getUsedCapacity();  });
                 }
 
                 ////////////////////////////////////////////////
 
                 if (creep.withdraw(energy, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE || creep.pickup(energy, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(energy);
-                } else {
-                    creep.moveTo(20, 26);
                 }
 
                 break;
@@ -101,9 +92,22 @@ module.exports = {
             if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
                 creep.memory.state = "collecting";
             } else
-            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+            if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                 creep.memory.state = "transferring";
             }
         }
+    }
+}
+
+function assertTarget(creep, room) {
+    if (typeof creep.memory.collectingTarget == "undefined") {
+
+        let viableTargets = room.find(FIND_STRUCTURES, {filter: (structure) => {
+            return (structure.structureType == STRUCTURE_CONTAINER) && (Object.keys(Memory.harvesterContainers).includes(structure.id)) &&
+            (Memory.harvesterContainers[structure.id] <= lib.mean(Object.values(Memory.harvesterContainers)));
+        }});
+        
+        creep.memory.collectingTarget = viableTargets[0].id;
+        Memory.harvesterContainers[viableTargets[0].id]++; // increment container's carrier assignment counter
     }
 }

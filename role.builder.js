@@ -5,32 +5,25 @@ module.exports = {
     run: function(creep) {
         assertStateMemory(creep, "collecting");
         const room = creep.room;
-        let constructionSites;
+
+        let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {filter: (structure) => {
+            return (structure.structureType == STRUCTURE_CONTAINER) && (!Object.keys(Memory.harvesterContainers).includes(structure.id)) &&
+            (structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0);
+        }});
+        let constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
         
         switch (creep.memory.state) {
             case "collecting":
-                if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
+                if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0 || container == null || typeof container == "undefined") {
                     creep.memory.state = "searching";
                     break;
                 }
 
                 ////////////////////////////////////////////////
 
-                var target;
-                let container = creep.pos.findClosestByPath(FIND_STRUCTURES, {filter: (structure) => {
-                        return (structure.structureType == STRUCTURE_CONTAINER) && (!Object.keys(Memory.harvesterContainers).includes(structure.id)) &&
-                        (structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0);
-                    }
-                });
-
-                if (typeof container != "undefined") {
-                    target = container;
-                } else {
-                    target = creep.pos.findClosestByPath(FIND_DROPPED_RESOURCES);
-                }
+                let target = container;
 
                 ////////////////////////////////////////////////
-
 
                 if (creep.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE || creep.pickup(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
                     creep.moveTo(target);
@@ -40,8 +33,6 @@ module.exports = {
 
             ////////////////////////////////////////////////////////////////////////////////////////////////
             case "building":
-                constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
-
                 if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 || constructionSites.length == 0) {
                     creep.memory.state = "searching";
                     break;
@@ -58,16 +49,14 @@ module.exports = {
                 break;
 
             case "repairing":
-                constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
-
                 if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 || constructionSites.length > 0) {
                     creep.memory.state = "searching";
                     break;
                 }
 
+                ////////////////////////////////////////////////
 
-
-                if (creep.memory.repairTarget == undefined || creep.memory.repairTarget == null) {
+                if (typeof creep.memory.repairTarget == "undefined" || creep.memory.repairTarget == null) {
                     let repairSites = creep.room.find(FIND_STRUCTURES, {filter: (structure) => {
                             return (structure.hits / structure.hitsMax) <= 0.5;
                         }
@@ -77,6 +66,7 @@ module.exports = {
                     if (repairSite != undefined && repairSite != null) {
                         creep.memory.repairTarget = repairSite.id;
                     }
+
                 } else {
                     let repairTarget = Game.getObjectById(creep.memory.repairTarget);
                     if (creep.repair(repairTarget) == ERR_NOT_IN_RANGE) {
@@ -92,17 +82,19 @@ module.exports = {
         }
 
         if (creep.memory.state == "searching") {
-            if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0) {
+            if (creep.store.getUsedCapacity(RESOURCE_ENERGY) == 0 && container != null) {
                 creep.memory.state = "collecting";
             } else
-            if (creep.store.getFreeCapacity(RESOURCE_ENERGY) == 0) {
-                let constructionSites = creep.room.find(FIND_CONSTRUCTION_SITES);
 
+            if (creep.store.getUsedCapacity(RESOURCE_ENERGY) > 0) {
                 if (constructionSites.length > 0) {
                     creep.memory.state = "building";
                 } else {
                     creep.memory.state = "repairing";
                 }
+
+            } else {
+                creep.moveTo(21, 29);
             }
         }
     }

@@ -8,6 +8,10 @@ const roleUpgrader = require("role.upgrader");
 module.exports.loop = function() {
     for (name in Memory.creeps) {
         if (!Game.creeps[name]) {
+            if (Memory.creeps[name].role == "carrier") {
+                Memory.harvesterContainers[Memory.creeps[name].collectingTarget]--;
+            }
+
             delete Memory.creeps[name];
             console.log('clearing inexistant creep: ', name);
             lib.refreshMemory(Game.creeps[name]);

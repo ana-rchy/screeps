@@ -4,7 +4,23 @@ module.exports = {
         let parts = [];
         let extensions = room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_EXTENSION}});
 
-        if (extensions.length == 5 && Object.keys(Game.creeps).length > 2 && room.controller.level > 1) {
+        if (extensions.length == 10 && Object.keys(Game.creeps).length > 3 && room.controller.level >= 3) {
+            switch (role) {
+                case "harvester":
+                    parts = [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
+                    break;
+                case "carrier":
+                    parts = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+                    break;
+                case "builder":
+                    parts = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
+                    break;
+                case "upgrader":
+                    parts = [WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE];
+                    break;
+            }
+        } else
+        if (extensions.length >= 5 && Object.keys(Game.creeps).length > 2 && room.controller.level >= 2) {
             switch (role) {
                 case "harvester":
                     parts = [WORK, WORK, WORK, WORK, WORK, MOVE];
@@ -71,11 +87,17 @@ module.exports = {
     },
 
     mean: function(array) {
+        if (array.length == 0) {
+            return NaN;
+        }
+
         let sum = 0;
 
-        for (let i in array) {
+        for (let i of array) {
             sum += i;
         }
+
+        console.log(sum, array.length);
 
         return sum / array.length;
     }
