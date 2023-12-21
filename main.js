@@ -3,9 +3,11 @@ const roleHarvester = require("role.harvester");
 const roleCarrier = require("role.carrier");
 const roleBuilder = require("role.builder");
 const roleUpgrader = require("role.upgrader");
+const tower = require("tower");
 
 
 module.exports.loop = function() {
+    //          clean           //
     for (name in Memory.creeps) {
         if (!Game.creeps[name]) {
             if (Memory.creeps[name].role == "carrier") {
@@ -18,13 +20,16 @@ module.exports.loop = function() {
         }
     }
 
-    let spawn = Game.spawns["Spawn1"];
-    const sourceCount = spawn.room.find(FIND_SOURCES).length;
+    //          spawn           //
+
+    let spawn = Game.spawns["Spawn1"];    
 
     if (typeof Memory.spawnOrder == "undefined") {
+        const sourceCount = spawn.room.find(FIND_SOURCES).length;
+
         Memory.spawnOrder = [
             {name: "harvester", priority: 1, count: 0, parts: [], limit: sourceCount},
-            {name: "carrier", priority: 2, count: 0, parts: [], limit: sourceCount * 2},
+            {name: "carrier", priority: 2, count: 0, parts: [], limit: sourceCount},
             {name: "builder", priority: 3, count: 0, parts: [], limit: sourceCount * 3},
             {name: "upgrader", priority: 4, count: 0, parts: [], limit: sourceCount * 4}
         ];
@@ -39,6 +44,9 @@ module.exports.loop = function() {
         }
     }
 
+    //          run         //
+
+    tower.run(Game.getObjectById("6481ce416f158a530eff7d40"));
 
     for (let name in Game.creeps) {
         let creep = Game.creeps[name];

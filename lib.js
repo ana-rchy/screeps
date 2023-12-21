@@ -4,7 +4,24 @@ module.exports = {
         let parts = [];
         let extensions = room.find(FIND_STRUCTURES, {filter: {structureType: STRUCTURE_EXTENSION}});
 
-        if (extensions.length == 10 && Object.keys(Game.creeps).length > 3 && room.controller.level >= 3) {
+        if (extensions.length >= 20 && Object.keys(Game.creeps).length > 5 && room.controller.level >= 4) {
+            switch (role) {
+                case "harvester":
+                    parts = [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
+                    break;
+                case "carrier":
+                    parts = [CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY,
+                        MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+                    break;
+                case "builder":
+                    parts = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+                    break;
+                case "upgrader":
+                    parts = [WORK, WORK, WORK, WORK, WORK, WORK, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, CARRY, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, MOVE];
+                    break;
+            }
+        } else
+        if (extensions.length >= 10 && Object.keys(Game.creeps).length > 3 && room.controller.level >= 3) {
             switch (role) {
                 case "harvester":
                     parts = [WORK, WORK, WORK, WORK, WORK, MOVE, MOVE, MOVE, MOVE, MOVE];
